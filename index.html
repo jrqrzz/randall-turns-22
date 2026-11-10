@@ -1,12 +1,646 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>For you</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For Randall</title>
+<style>
+  :root{
+    --bg:#fff4ec; --ink:#4a2f27; --soft:#8a6a5f; --card:#ffffff;
+    --accent:#ff7a93; --accent-dark:#e25c77;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    transition:background .9s ease, color .9s ease; touch-action:manipulation;
+  }
+  body.dark{ --bg:#2a2033; --ink:#fbe9dd; --soft:#cdb6c9; --card:#3a2d45; }
+  main{max-width:460px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+  h1{font-size:28px;line-height:1.15;text-align:center;margin:6px 0 4px;letter-spacing:-.01em}
+  .sub{text-align:center;color:var(--soft);margin:0 0 10px;font-size:15px}
+
+  .steps{display:flex;justify-content:center;gap:6px;margin:0 0 4px}
+  .steps span{font-size:12px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.05);color:var(--soft);transition:all .3s}
+  .steps span.on{background:var(--accent);color:#fff}
+  body.dark .steps span{background:rgba(255,255,255,.08)}
+  body.dark .steps span.on{background:var(--accent)}
+
+  svg#scene{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
+
+  .bubble{position:relative;background:var(--card);border-radius:16px;padding:10px 14px;margin:0 0 14px 6px;
+    font-size:16px;line-height:1.35;max-width:88%;box-shadow:0 2px 0 rgba(0,0,0,.06);transition:background .9s}
+  .bubble::before{content:"";position:absolute;top:-9px;left:34px;border:9px solid transparent;border-top:0;border-bottom-color:var(--card);transition:border-color .9s}
+  .bubble.pop{animation:pop .3s ease}
+  @keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+
+  .panel{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 2px 0 rgba(0,0,0,.06);transition:background .9s}
+  .label{font-size:12px;font-weight:700;color:var(--soft);margin:0 0 8px;text-transform:uppercase;letter-spacing:.08em}
+  .hint{font-size:16px;margin:0 0 12px}
+  .count{font-size:15px;color:var(--soft);margin:0 0 10px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .swatch{width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12);cursor:pointer;padding:0}
+  .swatch.on{box-shadow:0 0 0 3px var(--accent)}
+  .chip{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1.5px solid rgba(0,0,0,.14);background:transparent;color:var(--ink);cursor:pointer}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn{display:block;width:100%;font:inherit;font-size:18px;font-weight:700;padding:14px;border:0;border-radius:16px;
+    background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 4px 0 var(--accent-dark);transition:transform .08s,box-shadow .08s,opacity .2s}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--accent-dark)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid rgba(0,0,0,.14);font-size:16px;font-weight:600}
+  body.dark .btn.ghost,body.dark .chip{border-color:rgba(255,255,255,.2)}
+  .gap{height:10px}
+  .hidden{display:none!important}
+
+  .letter{background:var(--card);border-radius:20px;padding:22px 20px;line-height:1.6;font-size:17px;white-space:pre-line;
+    box-shadow:0 2px 0 rgba(0,0,0,.06);animation:rise .8s ease both}
+  .letter .from{margin-top:14px;text-align:right;font-weight:700}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .countdown{font-size:34px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;margin:4px 0 0}
+
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:10}
+
+  /* ---------- sausage dog animations ---------- */
+  #dog{transform-box:fill-box;transform-origin:50% 100%;cursor:pointer}
+  #tail{transform-box:fill-box;transform-origin:100% 100%;animation:wag .5s ease-in-out infinite alternate}
+  @keyframes wag{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+  #ear{transform-box:fill-box;transform-origin:50% 0;animation:flap 3.2s ease-in-out infinite}
+  @keyframes flap{0%,80%,100%{transform:rotate(0)}87%{transform:rotate(-12deg)}93%{transform:rotate(7deg)}}
+  #eye{transform-box:fill-box;transform-origin:50% 50%;animation:blink 4s infinite}
+  @keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+  #cheek{transform-box:fill-box;transform-origin:50% 50%;transition:transform .2s}
+  #dog.puff #cheek{transform:scale(2.2)}
+  #dog.hop{animation:hop .45s ease}
+  #dog.party{animation:hop .5s ease-in-out infinite}
+  #dog.party #tail{animation-duration:.14s}
+  @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-16px)}}
+  #dog.sleep #eye{animation:none;transform:scaleY(.12)}
+  #dog.sleep #tail{animation-duration:2.4s}
+  .zz{opacity:0;fill:var(--soft);font-weight:700}
+  body.locked .zz{animation:zz 3s ease-in-out infinite}
+  body.locked .zz:nth-of-type(2){animation-delay:1s}
+  body.locked .zz:nth-of-type(3){animation-delay:2s}
+  @keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-18px)}}
+
+  /* ---------- candles ---------- */
+  .flame{opacity:0;transform-box:fill-box;transform-origin:50% 100%;transition:opacity .25s,transform .35s}
+  .lit .flame{opacity:1;animation:flicker .16s ease-in-out infinite alternate}
+  @keyframes flicker{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.9,1.1) rotate(3deg)}}
+  .out .flame{opacity:0;transform:scale(.2);animation:none}
+  .halo{opacity:0;transition:opacity .4s}
+  .lit .halo{opacity:1}
+  .smoke{transform-box:fill-box;transform-origin:50% 50%;animation:smoke 1.6s ease-out forwards}
+  @keyframes smoke{from{opacity:.7;transform:translate(0,0) scale(.6)}to{opacity:0;transform:translate(6px,-42px) scale(1.8)}}
+  #warmGlow{opacity:0;transition:opacity 1s}
+  body.glowing #warmGlow{opacity:1}
+  .windline{stroke:#9fd3ff;stroke-width:3.5;fill:none;stroke-linecap:round;stroke-dasharray:26 400;stroke-dashoffset:26;opacity:0}
+  #wind.go .windline{animation:wind .75s ease-out forwards}
+  #wind.go .windline:nth-child(2){animation-delay:.08s}
+  #wind.go .windline:nth-child(3){animation-delay:.16s}
+  @keyframes wind{0%{opacity:1;stroke-dashoffset:26}100%{opacity:0;stroke-dashoffset:-170}}
+
+  @media (prefers-reduced-motion: reduce){
+    #tail,#ear,#eye,.lit .flame,#dog.party{animation:none}
+  }
+</style>
 </head>
-<body style="font-family: sans-serif; text-align: center; padding-top: 40vh;">
-  <h1>Not yet!</h1>
-  <p>Come back on November 10 🎂</p>
+<body>
+<canvas id="confetti"></canvas>
+<main>
+  <h1 id="title">A cake for you</h1>
+  <p class="sub" id="sub">Let's make you a birthday cake.</p>
+  <div class="steps" id="steps"><span>Decorate</span><span>Candles</span><span>Light</span><span>Wish</span></div>
+
+  <svg id="scene" viewBox="0 0 400 330" role="img" aria-label="A birthday cake and a little sausage dog">
+    <defs>
+      <linearGradient id="shade" x1="0" x2="1">
+        <stop offset="0" stop-color="#000" stop-opacity=".14"/>
+        <stop offset=".22" stop-color="#000" stop-opacity="0"/>
+        <stop offset=".78" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".16"/>
+      </linearGradient>
+      <radialGradient id="warm">
+        <stop offset="0" stop-color="#ffcf6b" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="halo">
+        <stop offset="0" stop-color="#ffe08a" stop-opacity=".8"/>
+        <stop offset="1" stop-color="#ffe08a" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <g id="bunting"></g>
+    <ellipse id="warmGlow" cx="250" cy="150" rx="145" ry="135" fill="url(#warm)"/>
+
+    <!-- plate -->
+    <ellipse cx="250" cy="285" rx="134" ry="24" fill="#e6d9cf"/>
+    <ellipse cx="250" cy="281" rx="134" ry="24" fill="#ffffff"/>
+
+    <!-- cake body -->
+    <path class="frost" d="M150,170 V268 A100,22 0 0 0 350,268 V170 Z" fill="#f7a8c4"/>
+    <path d="M150,170 V268 A100,22 0 0 0 350,268 V170 Z" fill="url(#shade)"/>
+    <g id="piping"></g>
+    <g id="hearts" class="hidden"></g>
+    <text id="nameText" class="hidden" x="250" y="242" text-anchor="middle" font-size="31"
+      font-family="'Snell Roundhand','Brush Script MT','Segoe Script',cursive" font-weight="700" fill="#d94f7a">Randall</text>
+
+    <!-- cake top -->
+    <ellipse class="frost" cx="250" cy="170" rx="100" ry="22" fill="#f7a8c4"/>
+    <ellipse cx="250" cy="170" rx="100" ry="22" fill="#fff" opacity=".28"/>
+    <path id="drip" fill="#fff7fb"/>
+    <g id="sprinkles" class="hidden"></g>
+    <g id="berries" class="hidden"></g>
+    <g id="candles"></g>
+    <g id="smoke"></g>
+
+    <g id="wind">
+      <path class="windline" d="M140,240 Q185,200 236,150"/>
+      <path class="windline" d="M142,252 Q200,215 262,166"/>
+      <path class="windline" d="M138,230 Q170,180 212,140"/>
+    </g>
+
+    <!-- the sausage dog -->
+    <g transform="translate(4,216) scale(.9)">
+      <g id="dog">
+        <path id="tail" d="M22,48 Q9,42 5,26" stroke="#9c5a2b" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <rect x="24" y="58" width="11" height="28" rx="5.5" fill="#8a4d23"/>
+        <rect x="80" y="58" width="11" height="28" rx="5.5" fill="#8a4d23"/>
+        <ellipse cx="58" cy="52" rx="45" ry="19" fill="#b8692f"/>
+        <ellipse cx="64" cy="61" rx="30" ry="8" fill="#d99a5f"/>
+        <rect x="35" y="60" width="11" height="27" rx="5.5" fill="#b8692f"/>
+        <rect x="90" y="60" width="11" height="27" rx="5.5" fill="#b8692f"/>
+        <g id="head">
+          <ellipse cx="104" cy="34" rx="20" ry="17" fill="#b8692f"/>
+          <ellipse cx="125" cy="42" rx="17" ry="9.5" fill="#c97a3d"/>
+          <circle cx="141" cy="39" r="4.8" fill="#3a2520"/>
+          <path d="M125,48 q5,4 10,0" stroke="#3a2520" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <g id="eye">
+            <ellipse cx="111" cy="30" rx="3.3" ry="3.8" fill="#2b1d19"/>
+            <circle cx="112.2" cy="28.6" r="1.1" fill="#fff"/>
+          </g>
+          <circle id="cheek" cx="116" cy="42" r="4" fill="#ff9aa8" opacity=".75"/>
+          <path id="ear" d="M97,22 C86,24 83,44 89,55 C95,60 102,51 101,40 Z" fill="#7c4220"/>
+          <g transform="rotate(12 106 20)">
+            <path d="M94,21 L106,-8 L118,21 Z" fill="#7ec8e3"/>
+            <path d="M99,9 L113,10 M96,16 L116,17" stroke="#fff" stroke-width="2.5"/>
+            <circle cx="106" cy="-9" r="4.5" fill="#ff7a93"/>
+          </g>
+        </g>
+      </g>
+      <text class="zz" x="118" y="6" font-size="12">z</text>
+      <text class="zz" x="126" y="-6" font-size="15">z</text>
+      <text class="zz" x="136" y="-20" font-size="18">z</text>
+    </g>
+  </svg>
+
+  <div class="bubble" id="bubble"></div>
+
+  <!-- step 1: decorate -->
+  <section class="panel" data-step="1">
+    <p class="label">Frosting</p>
+    <div class="row" id="swatches"></div>
+    <p class="label">Toppings</p>
+    <div class="row" id="toppings">
+      <button class="chip" data-top="sprinkles">Sprinkles</button>
+      <button class="chip" data-top="berries">Strawberries</button>
+      <button class="chip" data-top="hearts">Hearts</button>
+      <button class="chip" data-top="nameText">Your name</button>
+    </div>
+    <button class="btn" data-go="2">Next: candles</button>
+  </section>
+
+  <!-- step 2: candles -->
+  <section class="panel hidden" data-step="2">
+    <p class="hint">Tap the top of the cake to stick a candle in.</p>
+    <p class="count"><span id="count">0</span> candles</p>
+    <div class="row">
+      <button class="chip" id="addOne">Add one</button>
+      <button class="chip" id="fillAll">Add all</button>
+      <button class="chip" id="clearC">Take them out</button>
+    </div>
+    <button class="btn" id="toLight" data-go="3" disabled>Next: light them</button>
+    <div class="gap"></div>
+    <button class="btn ghost" data-go="1">Back</button>
+  </section>
+
+  <!-- step 3: light -->
+  <section class="panel hidden" data-step="3">
+    <p class="hint">Time to turn the lights down.</p>
+    <button class="btn" id="lightBtn">Light the candles</button>
+    <div class="gap"></div>
+    <button class="btn ghost" id="back3" data-go="2">Back</button>
+  </section>
+
+  <!-- step 4: wish + blow -->
+  <section class="panel hidden" data-step="4">
+    <p class="hint">Close your eyes and make a wish first.</p>
+    <button class="btn" id="blowBtn">Blow!</button>
+  </section>
+
+  <!-- step 5: the letter -->
+  <section class="hidden" data-step="5" id="done">
+    <div class="letter"><div id="letterText"></div><div class="from" id="letterFrom"></div></div>
+    <div class="gap"></div>
+    <button class="btn" id="again">Light them again</button>
+    <div class="gap"></div>
+    <button class="btn ghost" id="restart">Make a new cake</button>
+  </section>
+
+  <!-- shown before his birthday starts -->
+  <section class="hidden" id="lockPanel">
+    <p class="countdown" id="countdown"></p>
+  </section>
+</main>
+
+<script>
+/* =========================================================
+   EDIT THIS PART
+   (keep the ` marks around the message, and don't type a ` inside it)
+   ========================================================= */
+const CONFIG = {
+  name: "Randall",
+  age: 22,
+  // The page stays "locked" until this moment.
+  // Midnight in San Francisco on Nov 10 = 4pm Nov 10 in Singapore.
+  unlockAt: "2026-11-10T00:00:00-08:00",
+  message: `Happy birthday!
+
+Dear Besbe Koh, I LOVE YOU SO SO MUCHHHHHHH YOU HAVE YOURSELF THE BEST DAY AHEAD OKAYYYYY EHHEHEHEHE <3 
+i sowwy i cant be there to physically blow and eat nummy cheesecake w you but frankie here! and daisy there so she celebrate w youuu, shes my proxy heh. 
+i love you! happiest 23rd birthday my love, have the best year aheaddd
+You can press Enter to start new lines.`,
+  from: "love, me",
+};
+/* ========================================================= */
+
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function ordinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+// cake top = an oval centred at (CX, CY)
+const CX = 250, CY = 170, RX = 100, RY = 22;
+const AGE = CONFIG.age;
+
+/* ---------- the dog's lines ---------- */
+const LINES = {
+  start: [`Hi ${CONFIG.name}! I'm the official cake inspector.`, "Pick a frosting. I vote all of them."],
+  decorate: ["Ooh, fancy!", "That looks delicious.", "Can I lick the spoon?", "Five stars from me.", "Sprinkles are my favourite food group."],
+  candles: ["Now the candles! Tap the top of the cake."],
+  candle: ["One more!", "Careful, don't poke my nose.", "So many candles...", "Looking good!", "Wow, you're getting old!"],
+  full: [`That's ${AGE}! Perfect.`],
+  miss: ["Aim for the top of the cake!"],
+  light: ["Lights off... ready?"],
+  lit: ["Ooh, warm and glowy!"],
+  wish: ["Close your eyes and make a wish. I won't peek."],
+  done: ["WOOF! Happy birthday!", "Best birthday ever!", "Can we eat it now?"],
+  tap: ["Woof!", "*wags tail*", "Is it cake time yet?", "Belly rubs later, please.", "She misses you, you know."],
+  sleep: ["Shh... I'm guarding your cake. Come back on your birthday!"],
+};
+function say(text) {
+  const b = $("#bubble");
+  b.textContent = text;
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+}
+function dogClass(cls) {
+  const d = $("#dog");
+  d.classList.remove(cls); d.getBoundingClientRect(); d.classList.add(cls);
+}
+
+/* ---------- build the decorations ---------- */
+// bunting along the top
+(function () {
+  const g = $("#bunting");
+  el("path", { d: "M-10,14 Q200,58 410,14", stroke: "#d8b9a8", "stroke-width": 2, fill: "none" }, g);
+  const cols = ["#ff7a93", "#ffd166", "#7ec8e3", "#a8e6cf", "#c3a6ff"];
+  for (let i = 0; i < 11; i++) {
+    const t = (i + 0.5) / 11, u = 1 - t;
+    const x = u * u * -10 + 2 * u * t * 200 + t * t * 410;
+    const y = u * u * 14 + 2 * u * t * 58 + t * t * 14;
+    el("path", { d: `M${x - 12},${y} L${x + 12},${y} L${x},${y + 22} Z`, fill: cols[i % cols.length] }, g);
+  }
+})();
+
+// piping dots around the bottom
+(function () {
+  const g = $("#piping");
+  for (let i = 0; i <= 20; i++) {
+    const a = Math.PI * i / 20;
+    el("circle", { cx: CX + RX * Math.cos(a), cy: 268 + RY * Math.sin(a), r: 6, fill: "#fff", opacity: .9 }, g);
+  }
+})();
+
+// cream drips around the top edge
+(function () {
+  let d = "";
+  const N = 22;
+  for (let i = 0; i <= N; i++) {
+    const a = Math.PI - Math.PI * i / N;
+    const x = CX + RX * Math.cos(a), y = CY + RY * Math.sin(a) + 4;
+    d += (i === 0 ? `M${x},${y - 4}` : ` L${x},${y}`);
+    if (i > 0 && i < N && i % 2 === 0) {
+      const len = rand(6, 16);
+      d += ` V${y + len} a4,4 0 0 0 8,0 V${y}`;
+    }
+  }
+  d += ` A${RX},${RY} 0 0 0 ${CX - RX},${CY}`;
+  $("#drip").setAttribute("d", d);
+})();
+
+// sprinkles on top
+(function () {
+  const g = $("#sprinkles");
+  const cols = ["#ff5d8f", "#ffd166", "#5ec2f2", "#7bd88f", "#b58cff", "#ffffff"];
+  for (let i = 0; i < 55; i++) {
+    const r = Math.sqrt(Math.random()), a = rand(0, Math.PI * 2);
+    const x = CX + (RX - 10) * r * Math.cos(a), y = CY + (RY - 4) * r * Math.sin(a);
+    el("rect", { x: x - 1.2, y: y - 3.5, width: 2.4, height: 7, rx: 1.2, fill: pick(cols),
+      transform: `rotate(${rand(0, 180)} ${x} ${y})` }, g);
+  }
+})();
+
+// strawberries around the rim
+(function () {
+  const g = $("#berries");
+  const spots = [];
+  for (let i = 0; i < 9; i++) {
+    const a = Math.PI * 2 * i / 9 + .3;
+    spots.push({ x: CX + RX * .84 * Math.cos(a), y: CY + RY * .62 * Math.sin(a) });
+  }
+  spots.sort((p, q) => p.y - q.y).forEach(({ x, y }) => {
+    const b = el("g", { transform: `translate(${x},${y - 6})` }, g);
+    el("path", { d: "M0,-7 C7,-8 9,1 0,9 C-9,1 -7,-8 0,-7Z", fill: "#e8384f" }, b);
+    el("path", { d: "M-5,-7 L0,-4 L5,-7 L2,-9 L0,-11 L-2,-9Z", fill: "#4caf50" }, b);
+    [[-3, -1], [3, -1], [0, 3], [-2, 5], [2, 5]].forEach(([sx, sy]) =>
+      el("circle", { cx: sx, cy: sy, r: .9, fill: "#ffe7a3" }, b));
+  });
+})();
+
+// hearts on the side
+(function () {
+  const g = $("#hearts");
+  for (let i = 0; i < 7; i++) {
+    const x = 166 + i * 28, y = 258;
+    el("path", { d: `M${x},${y + 6} C${x - 10},${y - 1} ${x - 5},${y - 9} ${x},${y - 3} C${x + 5},${y - 9} ${x + 10},${y - 1} ${x},${y + 6}Z`,
+      fill: "#ff5d8f" }, g);
+  }
+})();
+$("#nameText").textContent = CONFIG.name;
+
+/* ---------- frosting + toppings ---------- */
+const FROSTINGS = [
+  { name: "Strawberry", c: "#f7a8c4", drip: "#fff7fb", ink: "#d94f7a" },
+  { name: "Chocolate",  c: "#7a4a32", drip: "#f6e6d4", ink: "#f6e6d4" },
+  { name: "Vanilla",    c: "#fbecc8", drip: "#7a4a32", ink: "#c0607a" },
+  { name: "Matcha",     c: "#b5d99c", drip: "#fffdf5", ink: "#4f7a3a" },
+  { name: "Blueberry",  c: "#a9cbf2", drip: "#ffffff", ink: "#3d6fb0" },
+];
+function setFrosting(i) {
+  const f = FROSTINGS[i];
+  document.querySelectorAll(".frost").forEach(e => e.setAttribute("fill", f.c));
+  $("#drip").setAttribute("fill", f.drip);
+  $("#nameText").setAttribute("fill", f.ink);
+  document.querySelectorAll(".swatch").forEach((s, j) => s.classList.toggle("on", j === i));
+}
+FROSTINGS.forEach((f, i) => {
+  const b = document.createElement("button");
+  b.className = "swatch"; b.style.background = f.c; b.setAttribute("aria-label", f.name);
+  b.onclick = () => { setFrosting(i); say(i === 1 ? "Chocolate! My favourite. (I'm not allowed any.)" : pick(LINES.decorate)); };
+  $("#swatches").appendChild(b);
+});
+setFrosting(0);
+
+document.querySelectorAll("[data-top]").forEach(chip => {
+  chip.onclick = () => {
+    const on = chip.classList.toggle("on");
+    $("#" + chip.dataset.top).classList.toggle("hidden", !on);
+    if (on) { say(pick(LINES.decorate)); dogClass("hop"); }
+  };
+});
+
+/* ---------- candles ---------- */
+const candles = [];
+const CANDLE_COLS = ["#ff7a93", "#7ec8e3", "#ffd166", "#a8e6cf", "#c3a6ff"];
+function onTop(x, y) {
+  return ((x - CX) / (RX - 12)) ** 2 + ((y - CY) / (RY - 4)) ** 2 <= 1;
+}
+function addCandle(x, y) {
+  if (candles.length >= AGE) { say(LINES.full[0]); return false; }
+  const g = el("g", { class: "candle", transform: `translate(${x.toFixed(1)},${y.toFixed(1)})` });
+  el("circle", { class: "halo", cx: 0, cy: -48, r: 16, fill: "url(#halo)" }, g);
+  el("rect", { x: -4, y: -36, width: 8, height: 36, rx: 2, fill: pick(CANDLE_COLS) }, g);
+  for (let s = 0; s < 3; s++)
+    el("line", { x1: -4, y1: -8 - s * 10, x2: 4, y2: -13 - s * 10, stroke: "#fff", "stroke-width": 2.2, "stroke-opacity": .85 }, g);
+  el("line", { x1: 0, y1: -36, x2: 0, y2: -41, stroke: "#3a2520", "stroke-width": 1.6, "stroke-linecap": "round" }, g);
+  const f = el("g", { class: "flame" }, g);
+  el("path", { d: "M0,-57 C7,-49 7,-43 0,-41 C-7,-43 -7,-49 0,-57Z", fill: "#ffa62b" }, f);
+  el("path", { d: "M0,-51 C3.5,-47 3.5,-44 0,-43 C-3.5,-44 -3.5,-47 0,-51Z", fill: "#fff3a8" }, f);
+
+  // candles further back are drawn first, so front ones overlap them
+  const next = candles.find(c => c.y > y);
+  $("#candles").insertBefore(g, next ? next.g : null);
+  candles.push({ x, y, g });
+  candles.sort((a, b) => a.y - b.y);
+  updateCount();
+  if (candles.length === AGE) { say(LINES.full[0]); dogClass("hop"); }
+  else if (Math.random() < .45) say(pick(LINES.candle));
+  return true;
+}
+function randomSpot() {
+  let best = null;
+  for (let t = 0; t < 200; t++) {
+    const r = Math.sqrt(Math.random()), a = rand(0, Math.PI * 2);
+    const x = CX + (RX - 14) * r * Math.cos(a), y = CY + (RY - 5) * r * Math.sin(a);
+    const close = candles.some(c => (c.x - x) ** 2 + ((c.y - y) * 2.4) ** 2 < 13 * 13);
+    if (!close) return { x, y };
+    best = { x, y };
+  }
+  return best;
+}
+function updateCount() {
+  $("#count").textContent = `${candles.length} / ${AGE}`;
+  $("#toLight").disabled = candles.length === 0;
+}
+$("#fillAll").textContent = `Add all ${AGE}`;
+$("#addOne").onclick = () => { const p = randomSpot(); addCandle(p.x, p.y); };
+$("#fillAll").onclick = () => {
+  while (candles.length < AGE) { const p = randomSpot(); addCandle(p.x, p.y); }
+};
+$("#clearC").onclick = () => {
+  candles.forEach(c => c.g.remove()); candles.length = 0; updateCount();
+  say("Okay, starting over!");
+};
+
+// tapping the picture
+const svg = $("#scene");
+svg.addEventListener("click", e => {
+  if (e.target.closest("#dog")) {
+    say(pick(LINES.tap)); dogClass("hop"); return;
+  }
+  if (step !== 2) return;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  if (onTop(p.x, p.y)) addCandle(p.x, p.y);
+  else say(LINES.miss[0]);
+});
+
+/* ---------- steps ---------- */
+let step = 1, busy = false;
+function setStep(n) {
+  step = n;
+  document.querySelectorAll("[data-step]").forEach(p => p.classList.toggle("hidden", +p.dataset.step !== n));
+  [...$("#steps").children].forEach((s, i) => s.classList.toggle("on", i === n - 1));
+  $("#steps").classList.toggle("hidden", n === 5);
+  if (n === 1) say(pick(LINES.start));
+  if (n === 2) { say(LINES.candles[0]); updateCount(); }
+  if (n === 3) {
+    $("#lightBtn").disabled = false;
+    $("#back3").classList.remove("hidden");
+    candles.forEach(c => c.g.classList.remove("lit", "out"));
+    say(LINES.light[0]);
+  }
+  if (n === 4) { $("#blowBtn").disabled = false; say(LINES.wish[0]); }
+}
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setStep(+b.dataset.go));
+
+$("#lightBtn").onclick = async () => {
+  if (busy) return; busy = true;
+  $("#lightBtn").disabled = true;
+  $("#back3").classList.add("hidden");
+  document.body.classList.add("dark");
+  await wait(800);
+  document.body.classList.add("glowing");
+  const gapMs = Math.max(45, 1000 / candles.length);
+  for (const c of [...candles].sort((a, b) => a.x - b.x)) {
+    c.g.classList.remove("out"); c.g.classList.add("lit");
+    await wait(gapMs);
+  }
+  say(LINES.lit[0]); dogClass("hop");
+  await wait(1000);
+  busy = false; setStep(4);
+};
+
+$("#blowBtn").onclick = async () => {
+  if (busy) return; busy = true;
+  $("#blowBtn").disabled = true;
+  const dog = $("#dog");
+  say("*deep breath*...");
+  dog.classList.add("puff");
+  await wait(600);
+  const w = $("#wind"); w.classList.remove("go"); w.getBoundingClientRect(); w.classList.add("go");
+  await wait(200);
+  dog.classList.remove("puff");
+  candles.forEach(c => setTimeout(() => {
+    c.g.classList.remove("lit"); c.g.classList.add("out");
+    const s = el("circle", { class: "smoke", cx: c.x, cy: c.y - 50, r: 4, fill: "#cfc8d6" }, $("#smoke"));
+    setTimeout(() => s.remove(), 1700);
+  }, rand(0, 600)));
+  await wait(1000);
+  document.body.classList.remove("glowing");
+  await wait(600);
+  document.body.classList.remove("dark");
+  $("#title").textContent = `Happy ${ordinal(AGE)} Birthday, ${CONFIG.name}!`;
+  $("#sub").textContent = "There's a note for you below.";
+  confetti();
+  dog.classList.add("party");
+  say(pick(LINES.done));
+  setStep(5);
+  setTimeout(() => dog.classList.remove("party"), 4000);
+  setTimeout(() => $("#done").scrollIntoView({ behavior: "smooth", block: "start" }), 1800);
+  busy = false;
+};
+
+$("#again").onclick = () => { window.scrollTo({ top: 0, behavior: "smooth" }); setStep(3); };
+$("#restart").onclick = () => {
+  candles.forEach(c => c.g.remove()); candles.length = 0;
+  $("#title").textContent = "A cake for you";
+  $("#sub").textContent = "Let's make you a birthday cake.";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setStep(1);
+};
+
+$("#letterText").textContent = CONFIG.message;
+$("#letterFrom").textContent = CONFIG.from;
+
+/* ---------- confetti ---------- */
+function confetti() {
+  const c = $("#confetti"), ctx = c.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = innerWidth, H = innerHeight;
+  c.width = W * dpr; c.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cols = ["#ff7a93", "#ffd166", "#7ec8e3", "#a8e6cf", "#c3a6ff", "#ff9f68"];
+  const P = [];
+  for (let i = 0; i < 170; i++) {
+    const left = i % 2 === 0;
+    P.push({
+      x: left ? -10 : W + 10, y: H * rand(.55, .8),
+      vx: (left ? 1 : -1) * rand(4, 10), vy: rand(-15, -7),
+      w: rand(6, 10), h: rand(8, 14), c: pick(cols), a: rand(0, 6.3), va: rand(-.25, .25),
+    });
+  }
+  const t0 = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of P) {
+      p.vy += .28; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.a += p.va;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.a * 2)) + 2);
+      ctx.restore();
+    }
+    if (t - t0 < 5000) requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+  })(t0);
+}
+
+/* ---------- birthday lock + start ---------- */
+const unlockTime = new Date(CONFIG.unlockAt).getTime();
+const preview = new URLSearchParams(location.search).has("preview");
+
+function startApp() {
+  document.body.classList.remove("locked");
+  $("#dog").classList.remove("sleep");
+  $("#lockPanel").classList.add("hidden");
+  $("#title").textContent = "A cake for you";
+  $("#sub").textContent = "Let's make you a birthday cake.";
+  setStep(1);
+}
+function startLock() {
+  document.body.classList.add("locked");
+  $("#dog").classList.add("sleep");
+  document.querySelectorAll("[data-step]").forEach(p => p.classList.add("hidden"));
+  $("#steps").classList.add("hidden");
+  $("#lockPanel").classList.remove("hidden");
+  $("#title").textContent = "Not yet!";
+  $("#sub").textContent = "Your birthday surprise opens in";
+  say(LINES.sleep[0]);
+  const pad = n => String(n).padStart(2, "0");
+  const tick = () => {
+    let s = Math.max(0, Math.floor((unlockTime - Date.now()) / 1000));
+    const d = Math.floor(s / 86400); s %= 86400;
+    const h = Math.floor(s / 3600); s %= 3600;
+    const m = Math.floor(s / 60); s %= 60;
+    $("#countdown").textContent = (d ? d + "d " : "") + `${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+  tick();
+  const timer = setInterval(() => {
+    if (Date.now() >= unlockTime) { clearInterval(timer); startApp(); } else tick();
+  }, 1000);
+}
+
+if (Date.now() < unlockTime && !preview) startLock(); else startApp();
+</script>
 </body>
 </html>
